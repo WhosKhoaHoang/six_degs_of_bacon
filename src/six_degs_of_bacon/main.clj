@@ -4,50 +4,80 @@
 )
 
 
+(defn remove-indexed
+    "
+    Removes an element in a vector
+    at the specified index.
+    @v: The vector to remove from
+    @n: The index of the element to remove
+    "
+    [v n]
+    (into (subvec v 0 n) (subvec v (inc n))))
+
+
 (defn bfs
-    "Searches for a target in a graph (represented
-     by an adjacency map) using a breadth-first-search."
+    "
+    Searches for a target in a graph (represented
+    by an adjacency map) using a breadth-first-search.
+    @g: The graph (represented by an adjacency map) to search
+    @start: The start node to begin searching from
+    @target: The target node to search for
+    "
     [g start target]
-    ;NOTE: There's a subtlety to Clojure's (contains?) function
+
+    ;TODO: Use a more Clojurey approach to this implementation
+    ;      (feels more imperative than functional)
+
     (let [my-q (atom '()) ;Use list because pop() occurs in front
-          visited (atom #{})]
+          visited (atom #{})
+          accesses (atom {})
+          path (atom [])]
          (reset! my-q (conj @my-q start))
          ;conj to my-q because initializing my-q
-         ;with start only puts the symbol start, NOT
+         ;with start only puts the SYMBOL start, NOT
          ;its value!
          (while (not-empty @my-q)
             (let [cur-node (atom (nth @my-q 0))]
                 (reset! my-q (pop @my-q))
                 (reset! visited (conj @visited @cur-node))
-
                 (if (= (str @cur-node) target)
                     (do
-                        (println "GOALLLLLLL")
-                        (println "Done...")
-                        ;path = [cur_node]
-                        ;p_node = cur_node
-                        ;while p_node != start:
-                        ;   to_append = accesses[p_node]
-                        ;   path.append(to_append)
-                        ;   p_node = to_append
-                        ;path.reverse()
-                        ;return path
+                        (let [p-node (atom @cur-node)]        
+                            (reset! path (conj @path @p-node))
+                            (while (not (= @p-node start))
+                                (do
+                                    (reset! path (conj @path (@accesses @p-node)))
+                                    (reset! p-node (@accesses @p-node))
+                                )
+                            )
+                            ;Empty out my-q in order to prevent
+                            ;outermost while loop from executing
+                            ;again (a break would be good, but
+                            ;Clojure doesn't give you a break lol)
+                            (reset! my-q (empty @my-q))
+                            (reset! path (reverse @path))
+                        )
                     )
+                    ;Else
                     (do
-                        (println "MORE TRAVERSAL")
-                        (println "Visiting children...")
-                        ;for child in g[cur_node]:
-                        ;   my_q.append(child)
+                        (doseq [child (g @cur-node)]
+                        ;for is "lazy" and won't run so use doseq instead.
+                            (do
+                                (reset! accesses (assoc @accesses child @cur-node))
+                                (reset! my-q (conj @my-q child))
+                            )
+                        )
                     )
                 )
             )
          )
+        (let [res @path] res)
+        ;In Clojure, the return value of a function
+        ;is the last form evaluated inside the function.
+        ;Make this line the function's last form evaluated
+        ;by writing it here.
     )
 )
-
-
-(defn remove-indexed [v n]
-    (into (subvec v 0 n) (subvec v (inc n))))
 
 
 (defn -main
@@ -67,7 +97,9 @@
       (def actor (read-line))
   )
   (println (str "The name of the actor is " actor))
-  (bfs "GRAPH" "a" "d")
+
+  (def res (bfs { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
+  (println res)
 
   ;TODO: Provide some validation?
   ;TODO: Allow users to find path between any two actors
