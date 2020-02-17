@@ -1,6 +1,7 @@
 (ns six-degs-of-bacon.main
   (:gen-class)
   (:require [Moov.core :as TMDB])
+  (:require [cheshire.core :as json])
 )
 
 
@@ -89,17 +90,19 @@
       (comment TMDB/personSearch "Arnold" comment)
    comment)
 
-  ;do allows you to write multiple instructions within
-  ;a single nested block?
   (do
       (print "Actor: ")
       (flush)
       (def actor (read-line))
   )
   (println (str "The name of the actor is " actor))
-
-  (def res (bfs { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
-  (println res)
+  (let [bacon-films (TMDB/personSearch "kevin-bacon")]
+      ;FIRST STEPS:
+      ;Get all of Bacon's films and all of actor's films.
+      (println (get (json/decode bacon-films) "results"))
+  )
+  ;(def res (bfs { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
+  ;(println res)
 
   ;TODO: Provide some validation?
   ;TODO: Allow users to find path between any two actors
