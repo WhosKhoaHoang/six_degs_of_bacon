@@ -13,7 +13,41 @@
     @n: The index of the element to remove
     "
     [v n]
-    (into (subvec v 0 n) (subvec v (inc n))))
+    (into (subvec v 0 n) (subvec v (inc n)))
+)
+
+
+;TODO: Add accesses and path variable
+(defn bfs-c
+    [g start targ]
+    "
+    More Clojure-ish BFS
+    "
+    (let [my-q (conj () start)
+          visited #{}
+          path []]
+          (loop [cur-node (first my-q)
+                 visited (conj visited cur-node)]
+              (if (not-empty my-q)
+                  (if (= cur-node targ)
+                      (println "TARGET ACQUIRED")
+                  )
+              )
+              (recur (for [child (get my-q cur-node)] (conj my-q child)) (visited)) ;update cur-node and my-q
+          )
+    )
+)
+(defn get-kids
+    [g parent]
+    (println "HELLO IN get-kids")
+    (println g)
+    (println parent)
+    (println (get g parent))
+    (println)
+    (for [e ["a" "b" "c"]] (e))
+    (for [child (get g parent)] (println child))
+)
+
 
 
 (defn bfs
@@ -96,11 +130,24 @@
       (def actor (read-line))
   )
   (println (str "The name of the actor is " actor))
+
+  (comment
   (let [bacon-films (TMDB/personSearch "kevin-bacon")]
       ;FIRST STEPS:
-      ;Get all of Bacon's films and all of actor's films.
+      ;. Get all of Bacon's films and all of actor's films.
+      ;. Represent each list of films as a vector and bind those
+      ;  vectors to a variable
+      ;. When any of the films from actor or any of the films from
+      ;  actor's co-stars is also a film of Bacon's, then stop.
+      (println
+          (count (get (json/decode bacon-films) "results"))
+      )
       (println (get (json/decode bacon-films) "results"))
+      ;(println (get (get (json/decode bacon-films) "results") "known-for"))
   )
+  comment)
+
+  (get-kids { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a")
   ;(def res (bfs { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
   ;(println res)
 
