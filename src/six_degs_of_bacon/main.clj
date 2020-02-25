@@ -17,37 +17,30 @@
 )
 
 
-;TODO: Add accesses and path variable
-(defn bfs-c
+(defn concat-kids
+    [my-q g visited]
+    (concat (rest my-q) (for [child (get g (str (first my-q)))
+                         :when (not (contains? visited child))] child))
+)
+;TODO: Add "accesses" variable
+(defn bfs-c2
     [g start targ]
-    "
-    More Clojure-ish BFS
-    "
-    (let [my-q (conj () start)
-          visited #{}
-          path []]
-          (loop [cur-node (first my-q)
-                 visited (conj visited cur-node)]
-              (if (not-empty my-q)
-                  (if (= cur-node targ)
-                      (println "TARGET ACQUIRED")
-                  )
-              )
-              (recur (for [child (get my-q cur-node)] (conj my-q child)) (visited)) ;update cur-node and my-q
-          )
-    )
+    """
+    A more Clojure-ish approach to BFS
+    """
+    (loop [my-q (concat () start)
+           visited #{}
+           cnt 0]
+        (if (= (str (first my-q)) targ)
+            ;When target is acquired, add target to
+            ;visited as well and build accesses map
+            (println "\nTARGET ACQUIRED\n" visited cnt)
+            (recur (concat-kids my-q g visited)
+                   (conj visited (first my-q))
+                   (inc cnt))
+            )
+        )
 )
-(defn get-kids
-    [g parent]
-    (println "HELLO IN get-kids")
-    (println g)
-    (println parent)
-    (println (get g parent))
-    (println)
-    (for [e ["a" "b" "c"]] (e))
-    (for [child (get g parent)] (println child))
-)
-
 
 
 (defn bfs
@@ -116,52 +109,57 @@
 
 
 (defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
+    "I don't do a whole lot ... yet."
+    [& args]
 
-  ;"Verify if there's a request limit...Apparently no limit.
-  (comment dotimes [i 10]
-      (comment TMDB/personSearch "Arnold" comment)
-   comment)
+    ;"Verify if there's a request limit...Apparently no limit.
+    (comment dotimes [i 10]
+        (comment TMDB/personSearch "Arnold" comment)
+    comment)
 
-  (do
-      (print "Actor: ")
-      (flush)
-      (def actor (read-line))
-  )
-  (println (str "The name of the actor is " actor))
+    (do
+        (print "Actor: ")
+        (flush)
+        (def actor (read-line))
+    )
+    (println (str "The name of the actor is " actor))
 
-  (comment
-  (let [bacon-films (TMDB/personSearch "kevin-bacon")]
-      ;FIRST STEPS:
-      ;. Get all of Bacon's films and all of actor's films.
-      ;. Represent each list of films as a vector and bind those
-      ;  vectors to a variable
-      ;. When any of the films from actor or any of the films from
-      ;  actor's co-stars is also a film of Bacon's, then stop.
-      (println
+    (comment
+    (let [bacon-films (TMDB/personSearch "kevin-bacon")]
+        ;FIRST STEPS:
+        ;. Get all of Bacon's films and all of actor's films.
+        ;. Represent each list of films as a vector and bind those
+        ;  vectors to a variable
+        ;. When any of the films from actor or any of the films from
+        ;  actor's co-stars is also a film of Bacon's, then stop.
+        (println
           (count (get (json/decode bacon-films) "results"))
-      )
-      (println (get (json/decode bacon-films) "results"))
-      ;(println (get (get (json/decode bacon-films) "results") "known-for"))
-  )
-  comment)
+        )
+        (println (get (json/decode bacon-films) "results"))
+        ;(println (get (get (json/decode bacon-films) "results") "known-for"))
+    )
+    comment)
 
-  (get-kids { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a")
-  ;(def res (bfs { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
-  ;(println res)
+    ;(get-kids { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a")
+    ;(def res (bfs { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
 
-  ;TODO: Provide some validation?
-  ;TODO: Allow users to find path between any two actors
-  ;      (not just to Kevin Bacon)
-  ;CONSIDER: Somehow make the solution to the 6 Degrees
-  ;          of Kevin Bacon problem reusable for other
-  ;          similar problems.
-  ;TARGET OUTPUT:
-  ;Actor's Bacon number and their path towards Bacon
+    ;(def res (bfs-c2 { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
+    (def res (bfs-c2 { "a" ["b" "c"] "b" ["d"] "c" ["b"] "d" ["e"] "e" []} "a" "e"))
+    ;b has two parent nodes
 
-  (try
-     ;(println (TMDB/personSearch "Arnold"))
-     (catch Exception e (println e))
-  )
+    ;(println res)
+
+    ;TODO: Provide some validation?
+    ;TODO: Allow users to find path between any two actors
+    ;      (not just to Kevin Bacon)
+    ;CONSIDER: Somehow make the solution to the 6 Degrees
+    ;          of Kevin Bacon problem reusable for other
+    ;          similar problems.
+    ;TARGET OUTPUT:
+    ;Actor's Bacon number and their path towards Bacon
+
+    (try
+        ;(println (TMDB/personSearch "Arnold"))
+        (catch Exception e (println e))
+    )
 )
