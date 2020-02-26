@@ -17,12 +17,44 @@
 )
 
 
+;THINK: Can use the result of this function to build the "accesses" map?
 (defn concat-kids
     [my-q g visited]
     (concat (rest my-q) (for [child (get g (str (first my-q)))
                          :when (not (contains? visited child))] child))
 )
+(defn update-accesses
+    [my-q g accesses]
+    (into accesses (for [e (get g (str (first my-q)))] [e (str (first my-q))]))
+)
 ;TODO: Add "accesses" variable
+; ===== FOR REFERENCE ===== ;
+(comment
+;When target has been found:
+(let [p-node (atom @cur-node)]        
+    (reset! path (conj @path @p-node))
+    (while (not (= @p-node start))
+        (do
+            (reset! path (conj @path (@accesses @p-node)))
+            (reset! p-node (@accesses @p-node))
+        )
+    )
+    ;Empty out my-q in order to prevent
+    ;outermost while loop from executing
+    ;again (a break would be good, but
+    ;Clojure doesn't give you a break lol)
+    (reset! my-q (empty @my-q))
+    (reset! path (reverse @path))
+)
+;When target has not been found:
+(doseq [child (g @cur-node)]
+;for is "lazy" and won't run so use doseq instead.
+    (do
+        (reset! accesses (assoc @accesses child @cur-node))
+        (reset! my-q (conj @my-q child))
+    )
+)
+comment)
 (defn bfs-c2
     [g start targ]
     """
@@ -30,13 +62,18 @@
     """
     (loop [my-q (concat () start)
            visited #{}
+           accesses {}
            cnt 0]
         (if (= (str (first my-q)) targ)
             ;When target is acquired, add target to
             ;visited as well and build accesses map
-            (println "\nTARGET ACQUIRED\n" visited cnt)
+
+            ;THINK: check the last element in path and see if it equals start
+            (println "\nTARGET ACQUIRED\n" accesses visited targ cnt)
+
             (recur (concat-kids my-q g visited)
                    (conj visited (first my-q))
+                   (update-accesses my-q g accesses)
                    (inc cnt))
             )
         )
@@ -143,9 +180,9 @@
     ;(get-kids { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a")
     ;(def res (bfs { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
 
-    ;(def res (bfs-c2 { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
-    (def res (bfs-c2 { "a" ["b" "c"] "b" ["d"] "c" ["b"] "d" ["e"] "e" []} "a" "e"))
-    ;b has two parent nodes
+    (def res (bfs-c2 { "a" ["b" "c"] "b" [] "c" ["d"] "d" []} "a" "d"))
+    ;(def res (bfs-c2 { "a" ["b" "c"] "b" ["d"] "c" ["b"] "d" ["e"] "e" []} "a" "e"))
+    ;b has two parent nodes here^
 
     ;(println res)
 
